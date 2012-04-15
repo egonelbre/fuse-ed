@@ -10,34 +10,12 @@ body.onload=window.onload=window.onresize = function(e){
     modified();
 }
 
-Object.clone = function clone(obj) {
-     return Object.extend({}, obj);
-}
-
-Object.extend = function extend(what, wit) {
-    var extObj, witKeys = Object.keys(wit);
-    extObj = Object.keys(what).length ? Object.clone(what) : {};
-    witKeys.forEach(function(key) {
-        Object.defineProperty(extObj, key, Object.getOwnPropertyDescriptor(wit, key));
-    });
-    return extObj;
-};
-
-CanvasRenderingContext2D.prototype.arrow = function(points, width){
-    // (==== >
-    var from = points[0],
-        to = points[points.length-1];
-
-    var angle = Math.atan2(to.y-from.y,to.x-from.x);
-    this.moveTo(from.x, from.y);
-    this.lineTo(to.x, to.y);
-    this.lineTo(to.x-width*Math.cos(angle-Math.PI/6),to.y-width*Math.sin(angle-Math.PI/6));
-    this.lineTo(to.x,to.y);
-    this.lineTo(to.x-width*Math.cos(angle+Math.PI/6),to.y-width*Math.sin(angle+Math.PI/6));
-}
-
 tau = Math.PI * 2;
 abs = Math.abs;
+
+colors = {
+    selection : "rgba(255, 20, 20, 0.6)"
+}
 
 main = {
     size : {x:0, y:0},
@@ -102,27 +80,33 @@ diagram = {
     selection : [],
     objects : [],
     styles : [],
-    
     renderType : function(ctx, type){
-        for(var i=0; i < this.objects.length; i += 1){
-            var obj = this.objects[i];
-            if(obj instanceof type)
-                obj.render(ctx);
-        }
+        this.objects.mapOf(type, function(obj){
+            obj.render(ctx);
+        });
     },
     render : function(ctx){
-        this.renderType(ctx, Rectangle);    
+        this.renderType(ctx, Rectangle);
+    },
+    renderConnections: function(ctx){
         this.renderType(ctx, Connection);
     },
     renderConnectors: function(ctx){
-        for(var i=0; i < this.objects.length; i += 1)
-            this.objects[i].renderConnectors(ctx);
+        this.objects.mapOf(null, function(obj){
+            obj.renderConnectors(ctx);
+        });
+    },
+    findObjectOfType : function(pos, type){
+        return this.objects.mapOf(type, function(obj){
+            if(obj.inside(pos))
+                return obj;
+        });
     },
     findObject : function(pos){
-        for(var i = this.objects.length - 1; i >= 0; i -= 1)
-            if(this.objects[i].inside(pos))
-                return this.objects[i];
-        return null;
+        var obj;
+        obj = this.findObjectOfType(pos, Rectangle);
+        if(obj) return obj;
+        return this.findObjectOfType(pos, null);
     }
 };
 
@@ -191,27 +175,28 @@ Connection.prototype.render = function(ctx){
         to = this.to.getPos();
 
     ctx.strokeStyle = this.third;
-    ctx.lineWidth = 15;
-
-    ctx.beginPath();
-    ctx.arrow([from, to], 15);
-    ctx.stroke();
+    ctx.fillStyle = this.prime;
+    ctx.arrow([from, to], 10, 1);
 }
 
 Connection.prototype.renderSelection = function(ctx){
-    var from = this.from.getPos(),
-        to = this.to.getPos();
+    var pad = 10,
+        from = this.from.getPos(),
+        to = this.to.getPos(),
+        padx = from.x > to.x ? -pad : pad,
+        pady = from.y > to.y ? -pad : pad;
     
-    ctx.strokeStyle = this.third;
-    ctx.lineWidth = 1;
-
     ctx.beginPath();
-    ctx.arrow([from, to], 15);
+    ctx.rect(from.x - padx, from.y - pady, 
+             to.x - from.x + 2*padx, to.y - from.y + 2*pady);
     ctx.stroke();
 }
 
 Connection.prototype.inside = function(pos){
-    return false;
+    var from = this.from.getPos(),
+        to = this.to.getPos();
+
+    return V.nearToLine(from, to, pos, 15);
 }
 
 Connection.prototype.getConnectors = function(){
@@ -331,25 +316,30 @@ mainRenderer = {
     }
 }
 
+connectionRenderer = {
+    enabled : true,
+    render : function(ctx){
+        diagram.renderConnections(ctx);
+    }
+}
+
 selecter = {
     enabled : true,
     render : function(ctx){
         if(!diagram.selection.length) return;
-        ctx.strokeStyle = "rgba(255, 20, 20, 0.6)";
+        ctx.strokeStyle = colors.selection;
         ctx.lineWidth = 2;
         for(var i = 0 ; i < diagram.selection.length; i += 1){
             var obj = diagram.selection[i];
             obj.renderSelection(ctx);
             if(!connectionCreator.drawing)
-                obj.renderConnectors(ctx);            
+                obj.renderConnectors(ctx);
         }
     },
     mouseAction : function(action, e){
         if (action == "down"){
-            diagram.selection = [];
             var obj = diagram.findObject(input.mouse.pos);
-            if(obj)
-                diagram.selection.push(obj);
+            diagram.selection = obj ? [obj] : [];
         }
     },
     keyAction : function(action, e){}
@@ -664,13 +654,12 @@ objectDeleter = {
                 diagram.objects.splice(idx,1);
             }
 
-            var objs = diagram.objects;
+            var objs = diagram.objects.slice(0);
             for(var i = 0; i < objs.length; i += 1){
                 var obj = objs[i];
                 if(!(obj instanceof Connection))
                     continue;
-                if((sel[0] == obj.from.owner) ||
-                   (sel[0] == obj.to.owner)){
+                if(sel[0] == obj.from.owner){
                     var idx = diagram.objects.indexOf(obj);
                     diagram.objects.splice(idx,1);
                 }
@@ -714,12 +703,12 @@ main.hudManager.huds.push(
     mainRenderer,
     styleMenu,
     selecter,
+    connectionRenderer,
     connectionCreator,
     rectangleMover,
     rectangleCreator,
     objectDeleter,
     objectOrderer
-    //controlMenu
 );
 
 input.mouse.render = function(){
