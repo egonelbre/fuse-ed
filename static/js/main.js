@@ -80,6 +80,31 @@ diagram = {
     selection : [],
     objects : [],
     styles : [],
+    add : function(obj){
+        this.objects.push(obj);
+    },
+    remove : function(obj){
+        var idx = diagram.objects.indexOf(obj);
+        if(idx >= 0){
+            diagram.objects.splice(idx,1);
+        }
+        obj.deleted = true;
+    },
+    collect : function(){
+        var removed = true;
+        while(removed){
+            var objs = this.objects.slice(0);
+            removed = false;
+            for(var i = 0; i < objs.length; i += 1){
+                var obj = objs[i],
+                    remove = obj.collect();
+                if(remove){
+                    this.remove(obj);
+                }
+                removed = remove || removed;
+            };
+        }
+    },
     renderType : function(ctx, type){
         this.objects.seqOf(type, function(obj){
             obj.render(ctx);
@@ -163,11 +188,23 @@ Style.prototype.render = function(ctx, rect){
 }
 
 function Connection(from, to){
+    this.deleted = false;
     this.from = from;
     this.to = to;
     this.prime = this.from.owner.prime;
     this.second = this.from.owner.second;
     this.third = this.from.owner.third;
+
+    var conn = new Connector(this, {x:0,y:0}),
+        that = this;
+    conn.radius = 10;
+    conn.getPos = function(){
+        var from = that.from.getPos(),
+            to = that.to.getPos();
+        return { x: (from.x + to.x)/2, 
+                 y: (from.y + to.y)/2};
+    }
+    this.connectors = [conn];
 }
 
 Connection.prototype.render = function(ctx){
@@ -200,20 +237,29 @@ Connection.prototype.inside = function(pos){
 }
 
 Connection.prototype.getConnectors = function(){
-    return [];
+    return this.connectors;
 }
 
 Connection.prototype.renderConnectors = function(ctx){
+    for(var i = 0; i < this.connectors.length; i += 1){
+        this.connectors[i].render(ctx);
+    }
 }
 
-function Connector(obj, pos){
+Connection.prototype.collect = function(){
+    if(this.from.owner.deleted)
+        return true;
+}
+
+function Connector(obj, offset){
     this.owner = obj;
-    this.pos = pos;
+    this.offset = offset;
     this.radius = 25;
 }
 
 Connector.prototype.getPos = function(){
-    return {x:this.owner.pos.x + this.pos.x, y:this.owner.pos.y + this.pos.y};
+    return {x:this.owner.pos.x + this.offset.x, 
+            y:this.owner.pos.y + this.offset.y};
 }
 
 Connector.prototype.render = function(ctx){
@@ -234,6 +280,7 @@ Connector.prototype.inside = function(pos){
 }
 
 function Rectangle(pos, size){
+    this.deleted = false;
     this.prime = "hsla(60, 60%, 60%, 0.9)";
     this.second = this.prime;
     this.third = "hsla(60, 60%, 30%, 0.9)";
@@ -298,6 +345,10 @@ Rectangle.prototype.clone = function(){
     r.third = this.third;
     this.lineWidth = this.lineWidth;
     return r;
+}
+
+Rectangle.prototype.collect = function(){
+    return false;
 }
 
 mainRenderer = {
@@ -402,7 +453,7 @@ connectionCreator = {
                 return;
 
             var conn = new Connection(this.from, to);
-            diagram.objects.push(conn);
+            diagram.add(conn);
             diagram.selection = [conn];
         }
     },
@@ -426,7 +477,7 @@ rectangleMover = {
                     for(var i = 0; i < diagram.selection.length; i += 1){
                         var obj = diagram.selection[i].clone();
                         objs.push(obj);
-                        diagram.objects.push(obj);
+                        diagram.add(obj);
                     }
                     diagram.selection = objs;
                 }
@@ -495,7 +546,7 @@ rectangleCreator = {
             var size = this.getRectSize(this.startPos, this.curPos);
             if((size.x > 0) && (size.y > 0)){
                 var rect = new Rectangle(this.startPos, size);
-                diagram.objects.push(rect);
+                diagram.add(rect);
                 diagram.selection = [rect];
             }
         }
@@ -643,21 +694,9 @@ objectDeleter = {
         if(action == "up" && (e.keyCode == 46)){ // delete
             var sel = diagram.selection;
             diagram.selection = [];
-            for(var i = 0; i < sel.length; i += 1){
-                var idx = diagram.objects.indexOf(sel[i]);
-                diagram.objects.splice(idx,1);
-            }
-
-            var objs = diagram.objects.slice(0);
-            for(var i = 0; i < objs.length; i += 1){
-                var obj = objs[i];
-                if(!(obj instanceof Connection))
-                    continue;
-                if(sel[0] == obj.from.owner){
-                    var idx = diagram.objects.indexOf(obj);
-                    diagram.objects.splice(idx,1);
-                }
-            }
+            for(var i = 0; i < sel.length; i += 1)
+                diagram.remove(sel[i]);
+            diagram.collect();
         }
         return true;
     }
