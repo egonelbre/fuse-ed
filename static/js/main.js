@@ -1,3 +1,8 @@
+"use strict";
+
+var tau = Math.PI * 2,
+    abs = Math.abs;
+
 var body = document.body,
     canvas = document.getElementById('main'),
     ctx = canvas.getContext('2d');
@@ -10,14 +15,11 @@ body.onload=window.onload=window.onresize = function(e){
     modified();
 }
 
-tau = Math.PI * 2;
-abs = Math.abs;
-
-colors = {
+var colors = {
     selection : "rgba(255, 20, 20, 0.6)"
 }
 
-main = {
+var main = {
     size : {x:0, y:0},
     canvas : canvas,
     ctx : ctx,
@@ -71,12 +73,12 @@ main.hudManager = {
     }
 }
 
-input = {
+var input = {
     mouse : {pos:{x:0, y:0}, down:false},
     keys : { control : false, shift : false }
 }
 
-diagram = {
+var diagram = {
     selection : [],
     objects : [],
     styles : [],
@@ -135,7 +137,7 @@ diagram = {
     }
 };
 
-createStyles = function(arr){
+var createStyles = function(arr){
     var res = [];
     for(var i = 0; i < arr.length; i += 1){
         res.push(new Style(arr[i][0],arr[i][1],arr[i][2],arr[i][3], arr[i][4]));
@@ -351,7 +353,7 @@ Rectangle.prototype.collect = function(){
     return false;
 }
 
-mainRenderer = {
+var mainRenderer = {
     enabled : true,
     render : function(ctx){
         ctx.fillStyle = "#666";
@@ -364,14 +366,14 @@ mainRenderer = {
     }
 }
 
-connectionRenderer = {
+var connectionRenderer = {
     enabled : true,
     render : function(ctx){
         diagram.renderConnections(ctx);
     }
 }
 
-selecter = {
+var selecter = {
     enabled : true,
     render : function(ctx){
         if(!diagram.selection.length) return;
@@ -387,13 +389,29 @@ selecter = {
     mouseAction : function(action, e){
         if (action == "down"){
             var obj = diagram.findObject(input.mouse.pos);
-            diagram.selection = obj ? [obj] : [];
+            var idx = diagram.selection.indexOf(obj);
+            if(input.keys.shift){
+                if(!obj) return;
+
+                if(idx >= 0)
+                    diagram.selection.splice(idx, 1);
+                else
+                    diagram.selection.push(obj);
+            } else {
+                if(!obj){
+                  diagram.selection = [];
+                  return;  
+                } 
+                if(idx < 0)
+                    diagram.selection = [obj];
+            }
+                
         }
     },
     keyAction : function(action, e){}
 }
 
-connectionCreator = {
+var connectionCreator = {
     enabled : true,
     drawing : false,
     from : null,
@@ -460,7 +478,7 @@ connectionCreator = {
     keyAction : function(action, e){}
 }
 
-rectangleMover = {
+var rectangleMover = {
     enabled : true,
     mouseDown : false,
     lastPos : {x:0,y:0},
@@ -510,7 +528,7 @@ rectangleMover = {
     keyAction : function(action, e){}
 }
 
-rectangleCreator = {
+var rectangleCreator = {
     enabled : true,
     mouseDown : false,
     startPos : {x:0,y:0},
@@ -554,7 +572,7 @@ rectangleCreator = {
     keyAction : function(action, e){}
 }
 
-styleMenu = {
+var styleMenu = {
     enabled : true,
     pos : {x:0,y:0},
     size : {x:0,y:0},
@@ -614,7 +632,7 @@ styleMenu = {
     keyAction : function(action, e){}
 }
 
-controlMenu = {
+var controlMenu = {
     enabled : true,
     pos : {x:0,y:0},
     size : {x:0,y:0},
@@ -685,7 +703,7 @@ controlMenu = {
 }
 
 
-objectDeleter = {
+var objectDeleter = {
     enabled : true,
     render : function(ctx){},
     keyAction : function(action, e){
@@ -702,7 +720,7 @@ objectDeleter = {
     }
 }
 
-objectOrderer = {
+var objectOrderer = {
     enabled : true,
     render : function(ctx){},
     keyAction : function(action, e){
@@ -785,7 +803,7 @@ function render(){
 setInterval(modified,500);
 render();
 
-mouseBinding = function(action){
+var mouseBinding = function(action){
     return function(e){
         if(action == "down"){
             input.mouse.down = true
@@ -808,7 +826,7 @@ canvas.onmouseup=mouseBinding("up");
 canvas.onmousewheel=mouseBinding("wheel");
 
 
-keyBinding = function(action){
+var keyBinding = function(action){
     return function(e){
         modified();
 
@@ -821,7 +839,7 @@ document.onkeydown=keyBinding("down");
 document.onkeypress=keyBinding("press");
 document.onkeyup=keyBinding("up");
 
-touchBinding = function(action){
+var touchBinding = function(action){
     return function(e){
         var touch = null;
         if(e.touches.length == 1){

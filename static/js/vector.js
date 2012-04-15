@@ -1,3 +1,5 @@
+"use strict";
+
 function V(x,y){
 	return {x:x||0, y:y||0};
 }

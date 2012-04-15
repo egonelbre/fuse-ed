@@ -1,22 +1,24 @@
-tau = Math.PI*2;
+"use strict";
 
-function AngleBetween(from, to){
+var tau = Math.PI*2;
+
+var angle_between = function(from, to){
 	var dx = from.x - to.x,
 		dy = from.y - to.y;
 	return Math.atan2(dy, dx);
 }
 
 CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
-    // (==== >
     if(points.length < 2){
     	throw "Requires at least 2 points!";
     }
+    
     lineWidth = lineWidth || 1;
 
     var fill = ctx.fillStyle,
     	stroke = ctx.strokeStyle;
 
-    var angle, dx, dy, prex, prey;
+    var angle, dx, dy, prex, prey, last;
 
     this.lineWidth = width;
     this.lineCap = "round";
@@ -28,9 +30,9 @@ CanvasRenderingContext2D.prototype.arrow = function(points, width, lineWidth){
     	this.lineTo(points[i].x, points[i].y);
     }
 
-    var last = points[points.length-1];
+    last = points[points.length-1];
 
-    angle = AngleBetween(points[points.length-2], last);
+    angle = angle_between(points[points.length-2], last);
     dx = Math.cos(angle)*width*2;
     dy = Math.sin(angle)*width*2;
 
