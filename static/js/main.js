@@ -165,9 +165,9 @@ Style.prototype.render = function(ctx, rect){
 function Connection(from, to){
     this.from = from;
     this.to = to;
-    this.prime = this.from.prime;
-    this.second = this.from.second;
-    this.third = this.from.third;
+    this.prime = this.from.owner.prime;
+    this.second = this.from.owner.second;
+    this.third = this.from.owner.third;
 }
 
 Connection.prototype.render = function(ctx){
@@ -208,9 +208,6 @@ Connection.prototype.renderConnectors = function(ctx){
 
 function Connector(obj, pos){
     this.owner = obj;
-    this.prime = this.owner.prime;
-    this.second = this.owner.second;
-    this.third = this.owner.third;
     this.pos = pos;
     this.radius = 25;
 }
@@ -222,8 +219,8 @@ Connector.prototype.getPos = function(){
 Connector.prototype.render = function(ctx){
     var pos = this.getPos();
 
-    ctx.fillStyle = this.prime;
-    ctx.strokeStyle = this.third;
+    ctx.fillStyle = this.owner.prime;
+    ctx.strokeStyle = this.owner.third;
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.arc(pos.x, pos.y, this.radius, 0, tau, 0);
@@ -357,13 +354,10 @@ connectionCreator = {
         diagram.renderConnectors(ctx);
 
         var from = this.from.getPos();
-        ctx.strokeStyle = "#fee";
-        ctx.lineWidth = 15;
+        ctx.strokeStyle = "#eaa";
+        ctx.fillStyle = "#fee";
 
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(this.curPos.x, this.curPos.y);
-
+        ctx.arrow([from, this.curPos], 10, 1);
         ctx.stroke();
     },
 
