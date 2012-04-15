@@ -13,7 +13,7 @@ const (
 )
 
 var (
-	mainTemplate, _ = template.ParseFiles(ClientDir + "index.html")
+	mainTemplate, _ = template.ParseFiles("index.html")
 	errorTemplate, _ = template.ParseFiles(ServerDir + "error.html")
 )
 
