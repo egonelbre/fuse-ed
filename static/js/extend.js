@@ -1,6 +1,17 @@
-Array.prototype.mapOf = function(type, fn){
+Array.prototype.seqOf = function(type, fn){
     var esc;
     for(var i = 0; i < this.length; i += 1){
+    	var obj = this[i];
+        if((type != null) && !(obj instanceof type))
+            continue;
+        esc = fn(obj);
+        if(esc) return esc;
+    }
+}
+
+Array.prototype.seqReverseOf = function(type, fn){
+    var esc;
+    for(var i = this.length - 1; i >= 0; i -= 1){
     	var obj = this[i];
         if((type != null) && !(obj instanceof type))
             continue;

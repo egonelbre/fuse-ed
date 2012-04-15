@@ -81,7 +81,7 @@ diagram = {
     objects : [],
     styles : [],
     renderType : function(ctx, type){
-        this.objects.mapOf(type, function(obj){
+        this.objects.seqOf(type, function(obj){
             obj.render(ctx);
         });
     },
@@ -92,12 +92,12 @@ diagram = {
         this.renderType(ctx, Connection);
     },
     renderConnectors: function(ctx){
-        this.objects.mapOf(null, function(obj){
+        this.objects.seqOf(null, function(obj){
             obj.renderConnectors(ctx);
         });
     },
     findObjectOfType : function(pos, type){
-        return this.objects.mapOf(type, function(obj){
+        return this.objects.seqReverseOf(type, function(obj){
             if(obj.inside(pos))
                 return obj;
         });
