@@ -8,12 +8,13 @@ import (
 
 const (
 	ClientDir = "client/"
+	ServerDir = "server/"
 	StaticDir = "static/"
 )
 
 var (
 	mainTemplate, _ = template.ParseFiles(ClientDir + "index.html")
-	errorTemplate, _ = template.ParseFiles(StaticDir + "error.html")
+	errorTemplate, _ = template.ParseFiles(ServerDir + "error.html")
 )
 
 func init() {
@@ -35,3 +36,4 @@ func errorHandler(fn http.HandlerFunc) http.HandlerFunc {
 func handler(w http.ResponseWriter, r *http.Request) {
 	mainTemplate.Execute(w, nil)
 }
+
