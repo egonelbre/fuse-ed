@@ -25,6 +25,18 @@ if( typeof Object.extend !== "function" ){
     };
 }
 
+if( typeof Object.keys !== "function" ){
+    Object.keys = function( obj ) {
+        var array = new Array();
+        for ( var prop in obj ) {
+            if ( obj.hasOwnProperty( prop ) ) {
+                array.push( prop );
+            }
+        }
+        return array;
+    };
+}
+
 if( typeof Object.__musthave__ !== "function" ){
     Object.__musthave__ = function(names){
         var errors = [];
@@ -50,7 +62,7 @@ function safe(f){
     }
 }
 
-safe( function(){
+safe(function(){
     // ECMA5 checks
     Object.__musthave__([
         'preventExtensions', 'isExtensible',
@@ -130,7 +142,10 @@ Array.methods({
 });
 
 Object.methods({
-    __monitor : function( method, text ){
+    hasProperty : function( name ){
+        return Object.prototype.hasOwnProperty.call( this, name );
+    },
+    _monitor : function( method, text ){
         var fn = this[method],
             that = this;
         this[method] = function(){
@@ -141,18 +156,18 @@ Object.methods({
             that[method] = fn;
         };
     },
-    __debug : function(){
+    _debug : function(){
         var original = {},
             that = this;
         for(var n in that){
-            if( /(__debug|__monitor)/.test(n) )
+            if( /(_debug|_monitor)/.test(n) )
                 continue;
             if( typeof that[n] == "function" ){
                 original[n] = that[n];
-                that.__monitor(n);
+                that._monitor(n);
             }
         }
-        that.__restore = function(){
+        that._restore = function(){
             for(var n in original){
                 if ( original.hasOwnProperty(n)){
                     that[n] = original[n];
