@@ -796,9 +796,12 @@ function modified(){
     window.requestAnimFrame(render);
 }
 
+var milliseconds = function(){return (new Date())-0;},
+    lastTime = milliseconds(),
+    limit = 1000/24;
+
 function render(){
     main.render();
-    //input.mouse.render();
 }
 setInterval(modified,500);
 render();
@@ -839,11 +842,16 @@ document.onkeydown=keyBinding("down");
 document.onkeypress=keyBinding("press");
 document.onkeyup=keyBinding("up");
 
+var _touches = {};
+
 var touchBinding = function(action){
     return function(e){
         var touch = null;
+        for(var n in _touches)
+            _touches[n].remove = false;
         if(e.touches.length == 1){
             touch = e.touches[0];
+            _touches[touch.identifier] = false;
             input.mouse.set(action,touch);
         }
         main.mouseAction(action, touch);
