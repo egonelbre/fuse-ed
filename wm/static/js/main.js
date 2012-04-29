@@ -42,32 +42,18 @@ styles.add(Button.make("1"));
 styles.add(Button.make("2"));
 styles.add(Button.make("3"));
 
-window.requestAnimFrame = (function(){
-  return  window.requestAnimationFrame       || 
-          window.webkitRequestAnimationFrame || 
-          window.mozRequestAnimationFrame    || 
-          window.oRequestAnimationFrame      || 
-          window.msRequestAnimationFrame     || 
-          function( callback ){ window.setTimeout(callback, 1000 / 24);};
-})();
+var render = function(){
+    main.update();
+    //window.requestAnimationFrame(render);
+}
 
-var render = (function(fpsLimit){
-    var milliseconds = function(){return (new Date())-0;},
-        lastTime = milliseconds(),
-        limit = 1000/fpsLimit;
-    return function(){
-        /*var newTime = milliseconds();
-        if(newTime - lastTime < limit){
-            requestRender();
-            return;
-        }
-        lastTime = newTime;*/
-        main.update();
-    };
-})(24);
-
+fps = 24;
+last = 0;
 function requestRender(){
-    window.requestAnimFrame(render)
+    setTimeout(function(){
+        window.cancelAnimationFrame(last);
+        last = window.requestAnimationFrame(render);
+    }, 1000/fps);
 }
 
 setInterval(requestRender, 1000);

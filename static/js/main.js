@@ -253,10 +253,10 @@ Connection.prototype.collect = function(){
         return true;
 }
 
-function Connector(obj, offset){
+function Connector(obj, offset, radius){
     this.owner = obj;
     this.offset = offset;
-    this.radius = 25;
+    this.radius = radius || 25;
 }
 
 Connector.prototype.getPos = function(){
@@ -300,7 +300,7 @@ function Rectangle(pos, size){
         }
     } else {
         for(var y = 5; y < size.y; y += 50){
-            this.connectors.push(new Connector(this, {x:size.x-25, y:y}));
+            this.connectors.push(new Connector(this, {x:size.x-25, y:y}, 15));
         }
     }    
 };
