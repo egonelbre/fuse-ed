@@ -1,0 +1,27 @@
+body {
+	padding: 0;
+	margin: 0;
+	overflow: hidden;
+}
+
+#main-menu {
+	position: fixed;
+	background: #DAD4C9;
+	left: 0; top: 0; bottom: 0;
+	padding-top: 10px;
+
+	border-right: 1px solid #ccc;
+}
+
+#main-menu .toggle, #main-menu .button {
+	width: 50px;
+	height: 50px;
+}
+
+#main-menu .toggle:hover {
+	outline: 5px solid hsla(48, 97%, 74%, 0.8);
+}
+
+#main-menu .toggle.toggle-down {
+	background: hsla(48, 97%, 74%, 0.8);
+}

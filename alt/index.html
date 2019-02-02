@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+	<title>Multiplexer</title>
+	<meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta names="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+	<link rel="stylesheet" href="static/css/reset.css" />
+    <link rel="stylesheet" href="static/css/style.css" />
+
+    <script src="static/lib/react.js"></script>
+
+    <script src="static/js/app.js"></script>
+</head>
+<body id="app">
+</body>
+<script>
+(function(){
+	'use strict';
+
+	function windowSize(){
+		return {
+			x: window.innerWidth,
+			y: window.innerHeight
+		}
+	}
+
+	var app = React.renderComponent(
+		new App({size: windowSize()}),
+		document.getElementById("app")
+	);
+
+	window.addEventListener('resize', function(){
+		app.setState({size: windowSize()});
+	});
+})();
+</script>
+</html>
